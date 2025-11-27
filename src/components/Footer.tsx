@@ -1,6 +1,19 @@
-import { Instagram, Mail } from 'lucide-react';
+import { Instagram, Mail, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const Footer = () => {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const handleAdminClick = () => {
+        if (user) {
+            navigate('/admin/dashboard');
+        } else {
+            navigate('/admin/login');
+        }
+    };
+
     return (
         <footer className="bg-munera-darker border-t border-white/10 py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,6 +65,14 @@ const Footer = () => {
                         >
                             <Mail size={24} />
                         </a>
+                        <button
+                            onClick={handleAdminClick}
+                            className="text-gray-600 hover:text-gray-400 transition-colors opacity-30 hover:opacity-100"
+                            aria-label="Admin"
+                            title="Administration"
+                        >
+                            <Lock size={18} />
+                        </button>
                     </div>
                 </div>
             </div>
