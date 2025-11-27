@@ -14,6 +14,8 @@ export interface Database {
                     id: string
                     name: string
                     date: string
+                    start_time: string | null
+                    end_time: string | null
                     venue: string
                     city: string
                     status: 'upcoming' | 'past'
@@ -29,6 +31,8 @@ export interface Database {
                     id?: string
                     name: string
                     date: string
+                    start_time?: string | null
+                    end_time?: string | null
                     venue: string
                     city: string
                     status: 'upcoming' | 'past'
@@ -44,6 +48,8 @@ export interface Database {
                     id?: string
                     name?: string
                     date?: string
+                    start_time?: string | null
+                    end_time?: string | null
                     venue?: string
                     city?: string
                     status?: 'upcoming' | 'past'

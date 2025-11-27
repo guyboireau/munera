@@ -10,6 +10,8 @@ type EventUpdate = Database['public']['Tables']['events']['Update'];
 interface EventFormData {
     name: string;
     date: string;
+    start_time: string;
+    end_time: string;
     venue: string;
     city: string;
     status: 'upcoming' | 'past';
@@ -42,10 +44,14 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
         defaultValues: initialData ? {
             ...initialData,
             date: formatDateForInput(initialData.date),
+            start_time: initialData.start_time || '',
+            end_time: initialData.end_time || '',
             lineup: initialData.lineup.map((l: string) => ({ name: l }))
         } : {
             status: 'upcoming',
-            lineup: [{ name: '' }]
+            lineup: [{ name: '' }],
+            start_time: '',
+            end_time: ''
         }
     });
 
@@ -57,6 +63,7 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
     const [uploading, setUploading] = useState(false);
     const [geocoding, setGeocoding] = useState(false);
     const [addressError, setAddressError] = useState('');
+    const [deleteFlyerRequested, setDeleteFlyerRequested] = useState(false);
 
     // Geocode address using Nominatim (OpenStreetMap)
     const geocodeAddress = async (venue: string, city: string): Promise<{ lat: number; lon: number } | null> => {
@@ -117,9 +124,16 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
                 flyerUrl = publicUrl;
             }
 
+            // Handle flyer deletion
+            if (deleteFlyerRequested && !data.flyer?.length) {
+                flyerUrl = null;
+            }
+
             const eventData = {
                 name: data.name,
                 date: new Date(data.date).toISOString(),
+                start_time: data.start_time || null,
+                end_time: data.end_time || null,
                 venue: data.venue,
                 city: data.city,
                 status: data.status,
@@ -183,6 +197,27 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
                                 type="datetime-local"
                                 {...register("date", { required: true })}
                                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-munera-violet focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-1">Heure de début</label>
+                            <input
+                                type="time"
+                                {...register("start_time")}
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-munera-violet focus:outline-none"
+                                placeholder="22:00"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-1">Heure de fin</label>
+                            <input
+                                type="time"
+                                {...register("end_time")}
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-munera-violet focus:outline-none"
+                                placeholder="06:00"
                             />
                         </div>
                     </div>
@@ -269,7 +304,7 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
                         <label className="block text-sm font-medium text-gray-400 mb-1">Flyer</label>
 
                         {/* Current flyer preview */}
-                        {initialData?.flyer_url && (
+                        {initialData?.flyer_url && !deleteFlyerRequested && (
                             <div className="mb-4">
                                 <p className="text-xs text-gray-500 mb-2">Flyer actuel :</p>
                                 <div className="relative w-full max-w-xs mx-auto">
@@ -278,8 +313,30 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
                                         alt="Flyer actuel"
                                         className="w-full h-auto rounded-lg border border-white/10"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setDeleteFlyerRequested(true)}
+                                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors"
+                                        title="Supprimer le flyer"
+                                    >
+                                        <X size={16} />
+                                    </button>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2 text-center">Uploadez une nouvelle image pour remplacer</p>
+                            </div>
+                        )}
+
+                        {/* Deletion confirmation */}
+                        {deleteFlyerRequested && (
+                            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                                <p className="text-red-400 text-sm mb-3 text-center">Le flyer sera supprimé lors de la sauvegarde</p>
+                                <button
+                                    type="button"
+                                    onClick={() => setDeleteFlyerRequested(false)}
+                                    className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm rounded-lg transition-colors"
+                                >
+                                    Annuler la suppression
+                                </button>
                             </div>
                         )}
 
