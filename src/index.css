@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-munera-violet: #8b5cf6;
+  --color-munera-blue: #3b82f6;
+  --color-munera-dark: #1a0f3e;
+  --color-munera-darker: #0f0824;
+
+  --font-sans: 'Inter', sans-serif;
+
+  --image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+  --image-hero-pattern: url('/hero-bg.jpg');
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-munera-dark);
+  color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  background: radial-gradient(circle at top center, #2d1b69 0%, #1a0f3e 100%);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-munera-darker);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(139, 92, 246, 0.5);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-munera-violet);
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+
+.glass-card:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+}
+
+/* Text Glow */
+.text-glow {
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+}
