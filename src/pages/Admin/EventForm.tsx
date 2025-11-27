@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { X, Plus, Upload } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import type { Database } from '../../types/database.types';
+
+type EventInsert = Database['public']['Tables']['events']['Insert'];
+type EventUpdate = Database['public']['Tables']['events']['Update'];
 
 interface EventFormData {
     name: string;
@@ -120,9 +124,9 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
                 city: data.city,
                 status: data.status,
                 lineup: data.lineup.map(l => l.name),
-                description: data.description,
-                shotgun_link: data.shotgun_link,
-                flyer_url: flyerUrl,
+                description: data.description || null,
+                shotgun_link: data.shotgun_link || null,
+                flyer_url: flyerUrl || null,
                 latitude: coordinates.lat,
                 longitude: coordinates.lon
             };
@@ -130,13 +134,15 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
             if (initialData) {
                 const { error } = await supabase
                     .from('events')
-                    .update(eventData as any)
+                    // @ts-ignore - Supabase type inference issue with Database types
+                    .update(eventData as EventUpdate)
                     .eq('id', initialData.id);
                 if (error) throw error;
             } else {
                 const { error } = await supabase
                     .from('events')
-                    .insert(eventData as any);
+                    // @ts-ignore - Supabase type inference issue with Database types
+                    .insert([eventData as EventInsert]);
                 if (error) throw error;
             }
 
