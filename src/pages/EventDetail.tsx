@@ -166,10 +166,18 @@ const EventDetail = () => {
                   <span>Date</span>
                   <span className="text-white">{new Date(event.date).toLocaleDateString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Heure</span>
-                  <span className="text-white">{new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
+                {(event.start_time || event.end_time) && (
+                  <div className="flex justify-between">
+                    <span>Horaires</span>
+                    <span className="text-white">
+                      {event.start_time && event.end_time
+                        ? `${event.start_time.substring(0, 5)} - ${event.end_time.substring(0, 5)}`
+                        : event.start_time
+                          ? `À partir de ${event.start_time.substring(0, 5)}`
+                          : `Jusqu'à ${event.end_time.substring(0, 5)}`}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Lieu</span>
                   <span className="text-white">{event.venue}</span>
