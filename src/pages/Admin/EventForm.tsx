@@ -267,6 +267,22 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
 
                     <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">Flyer</label>
+
+                        {/* Current flyer preview */}
+                        {initialData?.flyer_url && (
+                            <div className="mb-4">
+                                <p className="text-xs text-gray-500 mb-2">Flyer actuel :</p>
+                                <div className="relative w-full max-w-xs mx-auto">
+                                    <img
+                                        src={initialData.flyer_url}
+                                        alt="Flyer actuel"
+                                        className="w-full h-auto rounded-lg border border-white/10"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2 text-center">Uploadez une nouvelle image pour remplacer</p>
+                            </div>
+                        )}
+
                         <div className="border-2 border-dashed border-white/10 rounded-lg p-4 text-center cursor-pointer relative hover:border-munera-violet/50">
                             <input
                                 type="file"
@@ -275,7 +291,9 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSuccess, initialData }
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
                             <Upload className="mx-auto text-gray-500 mb-2" />
-                            <p className="text-sm text-gray-400">Cliquez pour uploader</p>
+                            <p className="text-sm text-gray-400">
+                                {initialData?.flyer_url ? 'Cliquez pour changer le flyer' : 'Cliquez pour uploader'}
+                            </p>
                         </div>
                     </div>
 
