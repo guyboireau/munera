@@ -8,6 +8,8 @@ interface EventCardProps {
     id: string;
     name: string;
     date: string;
+    start_time?: string | null;
+    end_time?: string | null;
     venue: string;
     city: string;
     lineup: string[];
@@ -19,6 +21,8 @@ const EventCard: React.FC<EventCardProps> = ({
     id,
     name,
     date,
+    start_time,
+    end_time,
     venue,
     city,
     lineup,
@@ -26,6 +30,18 @@ const EventCard: React.FC<EventCardProps> = ({
     flyerUrl
 }) => {
     const isUpcoming = status === 'upcoming';
+
+    // Format time display
+    const formatTime = (time: string | null | undefined) => {
+        if (!time) return '';
+        return time.substring(0, 5); // Get HH:MM from HH:MM:SS
+    };
+
+    const timeDisplay = start_time && end_time
+        ? `${formatTime(start_time)} - ${formatTime(end_time)}`
+        : start_time
+            ? `À partir de ${formatTime(start_time)}`
+            : '';
 
     return (
         <motion.div
@@ -60,12 +76,18 @@ const EventCard: React.FC<EventCardProps> = ({
                     {name}
                 </h3>
 
-                <div className="flex items-center gap-2 text-gray-300 mb-6">
+                <div className="flex items-center gap-2 text-gray-300 mb-2">
                     <Calendar size={16} className="text-munera-blue" />
                     <span className="text-sm tracking-wider">{date}</span>
                     <span className="mx-2">•</span>
                     <span className="text-sm">{venue}</span>
                 </div>
+
+                {timeDisplay && (
+                    <div className="text-munera-violet text-sm font-semibold mb-4">
+                        {timeDisplay}
+                    </div>
+                )}
 
                 <div className="mt-auto">
                     <div className="flex items-center gap-2 mb-4 text-gray-400 text-sm">

@@ -107,10 +107,13 @@ const Events = () => {
                             month: 'long',
                             year: 'numeric'
                         })}
+                        start_time={event.start_time}
+                        end_time={event.end_time}
                         venue={event.venue}
                         city={event.city}
                         lineup={event.lineup}
                         status={event.status}
+                        flyerUrl={event.flyer_url}
                     />
                 ))}
             </div>
