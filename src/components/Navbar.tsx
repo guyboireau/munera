@@ -2,14 +2,19 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
 
     const links = [
         { name: 'ACCUEIL', path: '/' },
         { name: 'ÉVÉNEMENTS', path: '/events' },
+        { name: 'CONTEST', path: '/contest' },
+        { name: 'SHOP', path: '/shop' },
     ];
 
     return (
@@ -42,6 +47,14 @@ const Navbar = () => {
                                     {link.name}
                                 </Link>
                             ))}
+                            {isAuthenticated && (
+                                <button
+                                    onClick={() => supabase.auth.signOut()}
+                                    className="px-3 py-2 rounded-md text-sm font-bold tracking-wider text-red-500 hover:text-red-400 transition-all duration-300"
+                                >
+                                    DECONNEXION
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -75,6 +88,17 @@ const Navbar = () => {
                                 {link.name}
                             </Link>
                         ))}
+                        {isAuthenticated && (
+                            <button
+                                onClick={() => {
+                                    supabase.auth.signOut();
+                                    setIsOpen(false);
+                                }}
+                                className="block w-full text-left px-3 py-2 rounded-md text-base font-bold tracking-wider text-red-500 hover:text-red-400 hover:bg-white/5"
+                            >
+                                DECONNEXION
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

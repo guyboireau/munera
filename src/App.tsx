@@ -5,6 +5,8 @@ import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import Login from './pages/Admin/Login';
 import Dashboard from './pages/Admin/Dashboard';
+import ContestPage from './pages/ContestPage';
+import ShopPage from './pages/ShopPage';
 
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -16,6 +18,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/events" element={<Events />} />
           <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/contest" element={<ContestPage />} />
+          <Route path="/shop" element={<ShopPage />} />
           <Route path="/admin/login" element={<Login />} />
 
           {/* Protected Admin Routes */}
