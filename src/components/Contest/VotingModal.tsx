@@ -29,7 +29,7 @@ const VotingModal: React.FC<VotingModalProps> = ({ contestant, isOpen, onClose, 
         if (!user || !contestant) return;
 
         // Check if user already voted in this contest
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('votes')
             .select('*')
             .eq('user_id', user.id)
@@ -68,8 +68,7 @@ const VotingModal: React.FC<VotingModalProps> = ({ contestant, isOpen, onClose, 
 
         try {
             // 1. Insert Vote
-            const { error: voteError } = await supabase
-                .from('votes')
+            const { error: voteError } = await (supabase.from('votes') as any)
                 .insert({
                     user_id: user.id,
                     contest_id: contestant.contest_id,
@@ -85,7 +84,7 @@ const VotingModal: React.FC<VotingModalProps> = ({ contestant, isOpen, onClose, 
             }
 
             // 2. Increment count (RPC)
-            const { error: incrementError } = await supabase.rpc('increment_vote', { row_id: contestant.id });
+            const { error: incrementError } = await (supabase.rpc as any)('increment_vote', { row_id: contestant.id });
             if (incrementError) console.error("RPC Error:", incrementError);
 
             onVoteSuccess();

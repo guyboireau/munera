@@ -54,7 +54,7 @@ const ContestManager = () => {
         setNewContestant({
             name: contestant.name,
             bio: contestant.bio || '',
-            soundcloud_url: contestant.soundcloud_link || '',
+            soundcloud_url: contestant.soundcloud_url || '',
             photo_url: contestant.photo_url || ''
         });
         setEditingId(contestant.id);
@@ -74,12 +74,12 @@ const ContestManager = () => {
         try {
             if (editingId) {
                 // Update existing
-                const { error } = await supabase.from('contestants').update({
+                const { error } = await (supabase.from('contestants') as any).update({
                     name: newContestant.name,
                     bio: newContestant.bio,
-                    soundcloud_link: newContestant.soundcloud_url,
+                    soundcloud_url: newContestant.soundcloud_url,
                     photo_url: newContestant.photo_url
-                } as any).eq('id', editingId);
+                }).eq('id', editingId);
 
                 if (error) throw error;
                 alert("Contestant updated!");
@@ -87,28 +87,28 @@ const ContestManager = () => {
                 // Create new
                 // First get or create a contest
                 let contestId;
-                const { data: contests } = await supabase.from('contest_editions').select('id').limit(1);
+                const { data: contests } = await (supabase.from('contest_editions') as any).select('id').limit(1);
                 if (contests && contests.length > 0) {
                     contestId = contests[0].id;
                 } else {
-                    const { data: newContest } = await supabase.from('contest_editions').insert({
+                    const { data: newContest } = await (supabase.from('contest_editions') as any).insert({
                         name: 'Default Contest',
                         start_date: new Date().toISOString(),
                         end_date: new Date(Date.now() + 86400000 * 30).toISOString(),
                         status: 'active'
-                    } as any).select().single();
+                    }).select().single();
                     if (newContest) contestId = newContest.id;
                 }
 
                 if (!contestId) throw new Error("Could not get contest ID");
 
-                const { error } = await supabase.from('contestants').insert({
+                const { error } = await (supabase.from('contestants') as any).insert({
                     name: newContestant.name,
                     bio: newContestant.bio,
-                    soundcloud_link: newContestant.soundcloud_url,
+                    soundcloud_url: newContestant.soundcloud_url,
                     photo_url: newContestant.photo_url,
                     contest_id: contestId
-                } as any);
+                });
 
                 if (error) throw error;
                 alert("Contestant added!");

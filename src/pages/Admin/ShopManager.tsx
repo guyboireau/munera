@@ -45,19 +45,19 @@ const ShopManager = () => {
         try {
             if (editingId) {
                 // Update existing
-                const { error } = await supabase.from('products').update({
+                const { error } = await (supabase.from('products') as any).update({
                     ...newProduct,
                     active: true
-                } as any).eq('id', editingId);
+                }).eq('id', editingId);
 
                 if (error) throw error;
                 alert("Product updated!");
             } else {
                 // Create new
-                const { error } = await supabase.from('products').insert({
+                const { error } = await (supabase.from('products') as any).insert({
                     ...newProduct,
                     active: true
-                } as any);
+                });
 
                 if (error) throw error;
                 alert("Product added!");
@@ -73,7 +73,7 @@ const ShopManager = () => {
     };
 
     const toggleActive = async (product: Product) => {
-        const { error } = await supabase.from('products').update({ active: !product.active } as any).eq('id', product.id);
+        const { error } = await (supabase.from('products') as any).update({ active: !product.active }).eq('id', product.id);
         if (!error) fetchProducts();
     };
 

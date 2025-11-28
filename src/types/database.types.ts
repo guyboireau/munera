@@ -209,6 +209,8 @@ export interface Database {
                     id: string
                     vote_code_id: string | null
                     contestant_id: string | null
+                    user_id: string | null
+                    contest_id: string | null
                     voted_at: string
                     ip_address: string | null
                 }
@@ -327,6 +329,14 @@ export interface Database {
                     paid_at?: string | null
                     shipped_at?: string | null
                 }
+            }
+        },
+        Functions: {
+            increment_vote: {
+                Args: {
+                    row_id: string
+                }
+                Returns: void
             }
         }
     }
