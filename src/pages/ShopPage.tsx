@@ -3,6 +3,7 @@ import type { Database } from '../types/database.types';
 import { supabase } from '../lib/supabase';
 import ProductCard from '../components/Shop/ProductCard';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 type Product = Database['public']['Tables']['products']['Row'];
 
@@ -17,6 +18,7 @@ const ShopPage: React.FC = () => {
         updateQuantity,
         cartTotal
     } = useCart();
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchProducts();
@@ -33,8 +35,8 @@ const ShopPage: React.FC = () => {
     };
 
     const handleCheckout = async () => {
-        // Integration with Stripe would go here
-        alert("Checkout integration coming soon! (Requires Stripe setup)");
+        setIsCartOpen(false);
+        navigate('/checkout');
     };
 
     return (
