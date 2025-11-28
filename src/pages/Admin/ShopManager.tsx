@@ -193,29 +193,39 @@ const ShopManager = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                        <label className="block text-sm text-zinc-400 mb-2">Product Image</label>
+                        <label className="block text-sm text-zinc-400 mb-2">Product Images</label>
                         <div className="flex items-center gap-4">
                             <input
                                 type="file"
                                 accept="image/*"
+                                multiple
                                 onChange={async (e) => {
                                     try {
                                         setLoading(true);
                                         if (!e.target.files || e.target.files.length === 0) return;
 
-                                        const file = e.target.files[0];
-                                        const fileExt = file.name.split('.').pop();
-                                        const fileName = `${Math.random()}.${fileExt}`;
-                                        const filePath = `${fileName}`;
+                                        const newImages: string[] = [];
 
-                                        const { error: uploadError } = await supabase.storage
-                                            .from('product-images')
-                                            .upload(filePath, file);
+                                        for (let i = 0; i < e.target.files.length; i++) {
+                                            const file = e.target.files[i];
+                                            const fileExt = file.name.split('.').pop();
+                                            const fileName = `${Math.random()}.${fileExt}`;
+                                            const filePath = `${fileName}`;
 
-                                        if (uploadError) throw uploadError;
+                                            const { error: uploadError } = await supabase.storage
+                                                .from('product-images')
+                                                .upload(filePath, file);
 
-                                        const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
-                                        setNewProduct(prev => ({ ...prev, images: [data.publicUrl] }));
+                                            if (uploadError) throw uploadError;
+
+                                            const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+                                            newImages.push(data.publicUrl);
+                                        }
+
+                                        setNewProduct(prev => ({
+                                            ...prev,
+                                            images: [...(prev.images || []), ...newImages]
+                                        }));
                                     } catch (error: any) {
                                         alert('Error uploading image: ' + error.message);
                                     } finally {
@@ -233,9 +243,27 @@ const ShopManager = () => {
                             />
                             {loading && <span className="text-sm text-orange-400">Uploading...</span>}
                         </div>
-                        {newProduct.images && newProduct.images[0] && (
-                            <div className="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-zinc-700">
-                                <img src={newProduct.images[0]} alt="Preview" className="w-full h-full object-cover" />
+
+                        {/* Image Preview Grid */}
+                        {newProduct.images && newProduct.images.length > 0 && (
+                            <div className="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-4">
+                                {newProduct.images.map((img, index) => (
+                                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-zinc-700 group">
+                                        <img src={img} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setNewProduct(prev => ({
+                                                    ...prev,
+                                                    images: prev.images.filter((_, i) => i !== index)
+                                                }));
+                                            }}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
