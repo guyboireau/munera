@@ -8,6 +8,7 @@ const HomeManager = () => {
     const [images, setImages] = useState<HomeImage[]>([]);
     const [loading, setLoading] = useState(false);
     const [randomMode, setRandomMode] = useState(false);
+    const [galleryLimit, setGalleryLimit] = useState(12);
 
     useEffect(() => {
         fetchImages();
@@ -22,13 +23,22 @@ const HomeManager = () => {
     };
 
     const fetchSettings = async () => {
-        const { data } = await (supabase.from('app_settings') as any)
+        const { data: randomData } = await (supabase.from('app_settings') as any)
             .select('*')
             .eq('key', 'home_gallery_random_mode')
             .single();
 
-        if (data && data.value) {
-            setRandomMode(data.value.enabled);
+        if (randomData && randomData.value) {
+            setRandomMode(randomData.value.enabled);
+        }
+
+        const { data: limitData } = await (supabase.from('app_settings') as any)
+            .select('*')
+            .eq('key', 'home_gallery_limit')
+            .single();
+
+        if (limitData && limitData.value) {
+            setGalleryLimit(limitData.value.limit);
         }
     };
 
@@ -45,6 +55,20 @@ const HomeManager = () => {
         if (error) {
             alert("Error saving setting: " + error.message);
             setRandomMode(!newValue); // Revert on error
+        }
+    };
+
+    const handleLimitChange = async (newLimit: number) => {
+        setGalleryLimit(newLimit);
+
+        const { error } = await (supabase.from('app_settings') as any)
+            .upsert({
+                key: 'home_gallery_limit',
+                value: { limit: newLimit }
+            });
+
+        if (error) {
+            console.error("Error saving limit:", error);
         }
     };
 
@@ -110,14 +134,27 @@ const HomeManager = () => {
                     <h3 className="text-xl font-bold flex items-center gap-2">
                         <span>🖼️</span> Home Gallery
                     </h3>
-                    <div className="flex items-center gap-3 bg-zinc-900 px-4 py-2 rounded-lg border border-white/10">
-                        <span className="text-sm text-zinc-400">Random Mode</span>
-                        <button
-                            onClick={toggleRandomMode}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${randomMode ? 'bg-green-500' : 'bg-zinc-700'}`}
-                        >
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${randomMode ? 'left-7' : 'left-1'}`} />
-                        </button>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 bg-zinc-900 px-4 py-2 rounded-lg border border-white/10">
+                            <span className="text-sm text-zinc-400">Max Images</span>
+                            <input
+                                type="number"
+                                min="1"
+                                max="50"
+                                value={galleryLimit}
+                                onChange={(e) => handleLimitChange(parseInt(e.target.value) || 12)}
+                                className="w-16 bg-zinc-800 border border-white/10 rounded px-2 py-1 text-white text-center focus:outline-none focus:border-orange-500"
+                            />
+                        </div>
+                        <div className="flex items-center gap-3 bg-zinc-900 px-4 py-2 rounded-lg border border-white/10">
+                            <span className="text-sm text-zinc-400">Random Mode</span>
+                            <button
+                                onClick={toggleRandomMode}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${randomMode ? 'bg-green-500' : 'bg-zinc-700'}`}
+                            >
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${randomMode ? 'left-7' : 'left-1'}`} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 

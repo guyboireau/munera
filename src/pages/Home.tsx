@@ -19,36 +19,48 @@ const Home = () => {
 
     const fetchGalleryContent = async () => {
         // Fetch settings first
-        const { data: settings } = await (supabase.from('app_settings') as any)
+        const { data: randomSettings } = await (supabase.from('app_settings') as any)
             .select('*')
             .eq('key', 'home_gallery_random_mode')
             .single();
 
-        const isRandomMode = settings?.value?.enabled || false;
+        const { data: limitSettings } = await (supabase.from('app_settings') as any)
+            .select('*')
+            .eq('key', 'home_gallery_limit')
+            .single();
 
-        // Fetch images
-        const { data: images } = await (supabase.from('home_images') as any)
-            .select('*');
-
-        if (!images) return;
+        const isRandomMode = randomSettings?.value?.enabled || false;
+        const limit = limitSettings?.value?.limit || 12;
 
         let displayedImages: GalleryImage[] = [];
 
         if (isRandomMode) {
-            // Pick 12 random images from ALL images (or active ones? Let's say all for variety if random mode is on)
-            // Actually, usually random mode picks from a pool. Let's pick from all uploaded images.
-            const shuffled = [...images].sort(() => 0.5 - Math.random());
-            displayedImages = shuffled.slice(0, 12);
-        } else {
-            // Pick only active images
-            displayedImages = images.filter((img: any) => img.active);
-        }
+            // Optimized Random Mode: Fetch only IDs first
+            const { data: allIds } = await (supabase.from('home_images') as any)
+                .select('id')
+                .eq('active', true); // Only pick from active images even in random mode? Usually safer.
 
-        // If no images from DB, fallback to hardcoded (optional, but good for dev)
-        if (displayedImages.length === 0) {
-            // Fallback logic could go here, but for now let's just leave it empty or show nothing
-            // Or we can map the old hardcoded ones to the interface if needed.
-            // For now, let's assume the user will upload images.
+            if (allIds && allIds.length > 0) {
+                // Shuffle IDs
+                const shuffledIds = allIds.map((item: any) => item.id).sort(() => 0.5 - Math.random());
+                const selectedIds = shuffledIds.slice(0, limit);
+
+                // Fetch full details for selected IDs
+                const { data: images } = await (supabase.from('home_images') as any)
+                    .select('*')
+                    .in('id', selectedIds);
+
+                if (images) displayedImages = images;
+            }
+        } else {
+            // Optimized Active Mode: Fetch active images with limit
+            const { data: images } = await (supabase.from('home_images') as any)
+                .select('*')
+                .eq('active', true)
+                .order('created_at', { ascending: false })
+                .limit(limit);
+
+            if (images) displayedImages = images;
         }
 
         setGalleryImages(displayedImages);

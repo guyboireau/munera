@@ -1,6 +1,5 @@
--- Create home_images table
 CREATE TABLE IF NOT EXISTS home_images (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     url text NOT NULL,
     active boolean DEFAULT true,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now())
