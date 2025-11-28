@@ -1,8 +1,59 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+
+interface GalleryImage {
+    id: string;
+    url: string;
+    active: boolean;
+}
 
 const Home = () => {
+    const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+
+    useEffect(() => {
+        fetchGalleryContent();
+    }, []);
+
+    const fetchGalleryContent = async () => {
+        // Fetch settings first
+        const { data: settings } = await (supabase.from('app_settings') as any)
+            .select('*')
+            .eq('key', 'home_gallery_random_mode')
+            .single();
+
+        const isRandomMode = settings?.value?.enabled || false;
+
+        // Fetch images
+        const { data: images } = await (supabase.from('home_images') as any)
+            .select('*');
+
+        if (!images) return;
+
+        let displayedImages: GalleryImage[] = [];
+
+        if (isRandomMode) {
+            // Pick 12 random images from ALL images (or active ones? Let's say all for variety if random mode is on)
+            // Actually, usually random mode picks from a pool. Let's pick from all uploaded images.
+            const shuffled = [...images].sort(() => 0.5 - Math.random());
+            displayedImages = shuffled.slice(0, 12);
+        } else {
+            // Pick only active images
+            displayedImages = images.filter((img: any) => img.active);
+        }
+
+        // If no images from DB, fallback to hardcoded (optional, but good for dev)
+        if (displayedImages.length === 0) {
+            // Fallback logic could go here, but for now let's just leave it empty or show nothing
+            // Or we can map the old hardcoded ones to the interface if needed.
+            // For now, let's assume the user will upload images.
+        }
+
+        setGalleryImages(displayedImages);
+    };
+
     return (
         <div className="flex flex-col">
             {/* Hero Section */}
@@ -74,22 +125,9 @@ const Home = () => {
                     </motion.h2>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {[
-                            'IMG_2475.jpg',
-                            'IMG_2674.jpg',
-                            'IMG_2757.jpg',
-                            'IMG_3134.jpg',
-                            'IMG_3163.jpg',
-                            'IMG_3180.jpg',
-                            '_MG_7245-Avec accentuation-Bruit @JYMLENS.jpg',
-                            '_MG_7286-Avec accentuation-Bruit.jpg',
-                            '_MG_7449-Avec accentuation-Bruit.jpg',
-                            '_MG_7466-Avec accentuation-Bruit.jpg',
-                            '_MG_7865-Avec accentuation-Bruit.jpg',
-                            '_MG_8035-Avec accentuation-Bruit.jpg',
-                        ].map((photo, index) => (
+                        {galleryImages.map((img, index) => (
                             <motion.div
-                                key={photo}
+                                key={img.id || index}
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
@@ -97,7 +135,7 @@ const Home = () => {
                                 className="relative aspect-square overflow-hidden rounded-lg group cursor-pointer"
                             >
                                 <img
-                                    src={`/images/gallery/${photo}`}
+                                    src={img.url}
                                     alt={`MUNERA Event ${index + 1}`}
                                     loading="lazy"
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"

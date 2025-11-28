@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Image, Upload, LogOut, Wand2, Trophy, ShoppingBag } from 'lucide-react';
+import { Calendar, Image, Upload, LogOut, Wand2, Trophy, ShoppingBag, Home } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,9 +9,10 @@ import GalleryManager from './GalleryManager';
 import FlyerGenerator from '../FlyerGenerator';
 import ContestManager from './ContestManager';
 import ShopManager from './ShopManager';
+import HomeManager from './HomeManager';
 
 const Dashboard = () => {
-    const [activeTab, setActiveTab] = useState<'events' | 'flyers' | 'gallery' | 'generator' | 'contest' | 'shop'>('events');
+    const [activeTab, setActiveTab] = useState<'events' | 'flyers' | 'gallery' | 'generator' | 'contest' | 'shop' | 'home'>('events');
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -74,6 +75,14 @@ const Dashboard = () => {
                         <ShoppingBag size={20} />
                         Shop
                     </button>
+                    <button
+                        onClick={() => setActiveTab('home')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'home' ? 'bg-munera-violet text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                    >
+                        <Home size={20} />
+                        Home
+                    </button>
                 </nav>
 
                 <button
@@ -95,6 +104,7 @@ const Dashboard = () => {
                         {activeTab === 'generator' && 'Générateur de Flyers'}
                         {activeTab === 'contest' && 'Gestion du Concours DJ'}
                         {activeTab === 'shop' && 'Gestion de la Boutique'}
+                        {activeTab === 'home' && 'Gestion de la Page d\'Accueil'}
                     </h1>
 
                     <div className="bg-munera-darker/50 border border-white/5 rounded-xl p-6">
@@ -104,6 +114,7 @@ const Dashboard = () => {
                         {activeTab === 'generator' && <FlyerGenerator />}
                         {activeTab === 'contest' && <ContestManager />}
                         {activeTab === 'shop' && <ShopManager />}
+                        {activeTab === 'home' && <HomeManager />}
                     </div>
                 </div>
             </main>

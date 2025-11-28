@@ -147,10 +147,14 @@ export interface Database {
                     name: string
                     bio: string | null
                     soundcloud_url: string | null
-                    instagram_url: string | null
                     photo_url: string | null
                     total_votes: number
                     created_at: string
+                    // Keeping these just in case, but optional/nullable if not used
+                    email?: string
+                    mix_link?: string
+                    instagram_handle?: string | null
+                    status?: string
                 }
                 Insert: {
                     id?: string
@@ -158,10 +162,13 @@ export interface Database {
                     name: string
                     bio?: string | null
                     soundcloud_url?: string | null
-                    instagram_url?: string | null
                     photo_url?: string | null
                     total_votes?: number
                     created_at?: string
+                    email?: string
+                    mix_link?: string
+                    instagram_handle?: string | null
+                    status?: string
                 }
                 Update: {
                     id?: string
@@ -169,10 +176,47 @@ export interface Database {
                     name?: string
                     bio?: string | null
                     soundcloud_url?: string | null
-                    instagram_url?: string | null
                     photo_url?: string | null
                     total_votes?: number
                     created_at?: string
+                    email?: string
+                    mix_link?: string
+                    instagram_handle?: string | null
+                    status?: string
+                }
+            },
+            home_images: {
+                Row: {
+                    id: string
+                    url: string
+                    active: boolean
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    url: string
+                    active?: boolean
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    url?: string
+                    active?: boolean
+                    created_at?: string
+                }
+            },
+            app_settings: {
+                Row: {
+                    key: string
+                    value: any
+                }
+                Insert: {
+                    key: string
+                    value: any
+                }
+                Update: {
+                    key?: string
+                    value?: any
                 }
             },
             vote_codes: {
