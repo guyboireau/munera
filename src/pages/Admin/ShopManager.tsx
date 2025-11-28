@@ -6,8 +6,19 @@ type Product = Database['public']['Tables']['products']['Row'];
 
 const ShopManager = () => {
     const [products, setProducts] = useState<Product[]>([]);
-    const [newProduct, setNewProduct] = useState({ name: '', description: '', price: 0, category: '', stock: 0, images: [] as string[] });
+    const [newProduct, setNewProduct] = useState({
+        name: '',
+        description: '',
+        price: 0,
+        category: '',
+        inventory: {} as Record<string, number>,
+        images: [] as string[]
+    });
     const [loading, setLoading] = useState(false);
+
+    // Temporary state for adding a size
+    const [tempSize, setTempSize] = useState('');
+    const [tempQty, setTempQty] = useState(0);
 
     useEffect(() => {
         fetchProducts();
@@ -26,7 +37,7 @@ const ShopManager = () => {
             description: product.description || '',
             price: product.price,
             category: product.category || '',
-            stock: product.stock || 0,
+            inventory: (product.inventory as Record<string, number>) || {},
             images: product.images ? (product.images as string[]) : []
         });
         setEditingId(product.id);
@@ -34,8 +45,26 @@ const ShopManager = () => {
     };
 
     const handleCancelEdit = () => {
-        setNewProduct({ name: '', description: '', price: 0, category: '', stock: 0, images: [] });
+        setNewProduct({ name: '', description: '', price: 0, category: '', inventory: {}, images: [] });
         setEditingId(null);
+        setTempSize('');
+        setTempQty(0);
+    };
+
+    const handleAddSize = () => {
+        if (!tempSize || tempQty < 0) return;
+        setNewProduct(prev => ({
+            ...prev,
+            inventory: { ...prev.inventory, [tempSize.toUpperCase()]: tempQty }
+        }));
+        setTempSize('');
+        setTempQty(0);
+    };
+
+    const handleRemoveSize = (size: string) => {
+        const newInventory = { ...newProduct.inventory };
+        delete newInventory[size];
+        setNewProduct(prev => ({ ...prev, inventory: newInventory }));
     };
 
     const handleAddProduct = async (e: React.FormEvent) => {
@@ -88,6 +117,11 @@ const ShopManager = () => {
         }
     };
 
+    const getTotalStock = (inventory: any) => {
+        if (!inventory) return 0;
+        return Object.values(inventory as Record<string, number>).reduce((a, b) => a + b, 0);
+    };
+
     return (
         <div className="space-y-8 text-white">
             <div className="bg-zinc-800/50 border border-white/10 p-6 rounded-xl">
@@ -116,14 +150,48 @@ const ShopManager = () => {
                         onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) })}
                         required
                     />
-                    <input
-                        type="number"
-                        className="bg-zinc-900 border border-white/10 p-3 rounded-lg text-white focus:outline-none focus:border-orange-500"
-                        placeholder="Stock Quantity"
-                        value={newProduct.stock || ''}
-                        onChange={e => setNewProduct({ ...newProduct, stock: parseInt(e.target.value) })}
-                        required
-                    />
+
+                    {/* Inventory Management */}
+                    <div className="md:col-span-2 bg-zinc-900/50 p-4 rounded-lg border border-white/5">
+                        <label className="block text-sm text-zinc-400 mb-2">Inventory (Size & Stock)</label>
+                        <div className="flex gap-2 mb-3">
+                            <input
+                                className="bg-zinc-800 border border-white/10 p-2 rounded text-white w-24"
+                                placeholder="Size (S)"
+                                value={tempSize}
+                                onChange={e => setTempSize(e.target.value)}
+                            />
+                            <input
+                                type="number"
+                                className="bg-zinc-800 border border-white/10 p-2 rounded text-white w-24"
+                                placeholder="Qty"
+                                value={tempQty}
+                                onChange={e => setTempQty(parseInt(e.target.value) || 0)}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddSize}
+                                className="bg-zinc-700 hover:bg-zinc-600 text-white px-4 rounded"
+                            >
+                                Add
+                            </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {Object.entries(newProduct.inventory).map(([size, qty]) => (
+                                <span key={size} className="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                    <span className="font-bold">{size}</span>: {qty}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveSize(size)}
+                                        className="hover:text-white"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="md:col-span-2">
                         <label className="block text-sm text-zinc-400 mb-2">Product Image</label>
                         <div className="flex items-center gap-4">
@@ -210,7 +278,7 @@ const ShopManager = () => {
                                 <th className="p-3">Product</th>
                                 <th className="p-3">Category</th>
                                 <th className="p-3">Price</th>
-                                <th className="p-3">Stock</th>
+                                <th className="p-3">Total Stock</th>
                                 <th className="p-3">Status</th>
                                 <th className="p-3">Actions</th>
                             </tr>
@@ -226,7 +294,14 @@ const ShopManager = () => {
                                     </td>
                                     <td className="p-3 text-zinc-400">{p.category}</td>
                                     <td className="p-3">{p.price} €</td>
-                                    <td className="p-3">{p.stock}</td>
+                                    <td className="p-3">
+                                        <div className="flex flex-col">
+                                            <span className="font-bold">{getTotalStock(p.inventory)}</span>
+                                            <span className="text-xs text-zinc-500">
+                                                {p.inventory ? Object.keys(p.inventory).join(', ') : ''}
+                                            </span>
+                                        </div>
+                                    </td>
                                     <td className="p-3">
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${p.active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                                             {p.active ? 'Active' : 'Inactive'}

@@ -1,17 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Database } from '../../types/database.types';
 
 type Product = Database['public']['Tables']['products']['Row'];
 
 interface ProductCardProps {
     product: Product;
-    onAddToCart: (product: Product) => void;
+    onAddToCart: (product: Product, size?: string) => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+    const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
     // Handle case where images might be null or empty
     const imageUrl = product.images && product.images.length > 0 ? product.images[0] : null;
-    const isOutOfStock = product.stock <= 0;
+
+    const inventory = (product.inventory as Record<string, number>) || {};
+    const totalStock = Object.values(inventory).reduce((a, b) => a + b, 0);
+    const isOutOfStock = totalStock <= 0;
+    const sizes = Object.keys(inventory).filter(size => inventory[size] > 0);
+
+    const handleAddToCart = () => {
+        if (sizes.length > 0 && !selectedSize) {
+            alert("Please select a size");
+            return;
+        }
+        onAddToCart(product, selectedSize || undefined);
+        setSelectedSize(null); // Reset after adding
+    };
 
     return (
         <div className="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-zinc-700 transition-all group flex flex-col h-full">
@@ -48,16 +63,33 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
                     </div>
                 </div>
 
-                <div className="mt-auto pt-4">
+                <div className="mt-auto pt-4 space-y-3">
+                    {sizes.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {sizes.map(size => (
+                                <button
+                                    key={size}
+                                    onClick={() => setSelectedSize(size)}
+                                    className={`px-3 py-1 text-xs font-bold rounded border transition-colors ${selectedSize === size
+                                            ? 'bg-white text-black border-white'
+                                            : 'bg-transparent text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                                        }`}
+                                >
+                                    {size}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <button
-                        onClick={() => onAddToCart(product)}
-                        disabled={isOutOfStock}
+                        onClick={handleAddToCart}
+                        disabled={isOutOfStock || (sizes.length > 0 && !selectedSize)}
                         className="w-full py-3 bg-white text-black font-bold rounded hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm uppercase tracking-wide flex items-center justify-center gap-2"
                     >
                         {isOutOfStock ? 'Out of Stock' : (
                             <>
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                                Add to Cart
+                                {sizes.length > 0 && !selectedSize ? 'Select Size' : 'Add to Cart'}
                             </>
                         )}
                     </button>

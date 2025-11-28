@@ -241,8 +241,7 @@ export interface Database {
                     price: number
                     images: string[] | null
                     category: string | null
-                    stock: number
-                    sizes: string[] | null
+                    inventory: Json | null
                     active: boolean
                     stripe_product_id: string | null
                     created_at: string
@@ -254,8 +253,7 @@ export interface Database {
                     price: number
                     images?: string[] | null
                     category?: string | null
-                    stock?: number
-                    sizes?: string[] | null
+                    inventory?: Json | null
                     active?: boolean
                     stripe_product_id?: string | null
                     created_at?: string
@@ -267,8 +265,7 @@ export interface Database {
                     price?: number
                     images?: string[] | null
                     category?: string | null
-                    stock?: number
-                    sizes?: string[] | null
+                    inventory?: Json | null
                     active?: boolean
                     stripe_product_id?: string | null
                     created_at?: string

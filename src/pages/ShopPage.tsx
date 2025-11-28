@@ -2,34 +2,25 @@ import React, { useEffect, useState } from 'react';
 import type { Database } from '../types/database.types';
 import { supabase } from '../lib/supabase';
 import ProductCard from '../components/Shop/ProductCard';
+import { useCart } from '../context/CartContext';
 
 type Product = Database['public']['Tables']['products']['Row'];
 
-interface CartItem extends Product {
-    quantity: number;
-}
-
 const ShopPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
-    const [cart, setCart] = useState<CartItem[]>([]);
-    const [isCartOpen, setIsCartOpen] = useState(false);
+    const {
+        cart,
+        isCartOpen,
+        setIsCartOpen,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        cartTotal
+    } = useCart();
 
     useEffect(() => {
         fetchProducts();
-        // Load cart from local storage
-        const savedCart = localStorage.getItem('munera_cart');
-        if (savedCart) {
-            try {
-                setCart(JSON.parse(savedCart));
-            } catch (e) {
-                console.error("Failed to parse cart", e);
-            }
-        }
     }, []);
-
-    useEffect(() => {
-        localStorage.setItem('munera_cart', JSON.stringify(cart));
-    }, [cart]);
 
     const fetchProducts = async () => {
         const { data } = await supabase
@@ -40,35 +31,6 @@ const ShopPage: React.FC = () => {
 
         if (data) setProducts(data);
     };
-
-    const addToCart = (product: Product) => {
-        setCart(current => {
-            const existing = current.find(item => item.id === product.id);
-            if (existing) {
-                return current.map(item =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-                );
-            }
-            return [...current, { ...product, quantity: 1 }];
-        });
-        setIsCartOpen(true);
-    };
-
-    const removeFromCart = (productId: string) => {
-        setCart(current => current.filter(item => item.id !== productId));
-    };
-
-    const updateQuantity = (productId: string, delta: number) => {
-        setCart(current => current.map(item => {
-            if (item.id === productId) {
-                const newQty = Math.max(1, item.quantity + delta);
-                return { ...item, quantity: newQty };
-            }
-            return item;
-        }));
-    };
-
-    const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     const handleCheckout = async () => {
         // Integration with Stripe would go here
@@ -136,8 +98,8 @@ const ShopPage: React.FC = () => {
                                     Your cart is empty.
                                 </div>
                             ) : (
-                                cart.map(item => (
-                                    <div key={item.id} className="flex gap-4 bg-zinc-800/50 p-3 rounded-lg border border-zinc-800">
+                                cart.map((item, index) => (
+                                    <div key={`${item.id}-${item.selectedSize || 'nosize'}-${index}`} className="flex gap-4 bg-zinc-800/50 p-3 rounded-lg border border-zinc-800">
                                         <div className="w-20 h-20 bg-zinc-700 rounded overflow-hidden flex-shrink-0">
                                             {item.images && item.images[0] ? (
                                                 <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
@@ -148,13 +110,18 @@ const ShopPage: React.FC = () => {
                                         <div className="flex-grow min-w-0">
                                             <h4 className="font-bold text-sm truncate">{item.name}</h4>
                                             <p className="text-orange-500 text-sm">{item.price} €</p>
+                                            {item.selectedSize && (
+                                                <span className="text-xs bg-zinc-700 px-2 py-0.5 rounded text-zinc-300 mt-1 inline-block">
+                                                    Size: {item.selectedSize}
+                                                </span>
+                                            )}
                                             <div className="flex items-center gap-3 mt-2">
-                                                <button onClick={() => updateQuantity(item.id, -1)} className="w-6 h-6 bg-zinc-700 rounded flex items-center justify-center hover:bg-zinc-600 text-sm">-</button>
+                                                <button onClick={() => updateQuantity(item.id, -1, item.selectedSize)} className="w-6 h-6 bg-zinc-700 rounded flex items-center justify-center hover:bg-zinc-600 text-sm">-</button>
                                                 <span className="text-sm font-mono w-4 text-center">{item.quantity}</span>
-                                                <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 bg-zinc-700 rounded flex items-center justify-center hover:bg-zinc-600 text-sm">+</button>
+                                                <button onClick={() => updateQuantity(item.id, 1, item.selectedSize)} className="w-6 h-6 bg-zinc-700 rounded flex items-center justify-center hover:bg-zinc-600 text-sm">+</button>
                                             </div>
                                         </div>
-                                        <button onClick={() => removeFromCart(item.id)} className="text-zinc-500 hover:text-red-500 self-start p-1">
+                                        <button onClick={() => removeFromCart(item.id, item.selectedSize)} className="text-zinc-500 hover:text-red-500 self-start p-1">
                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
                                     </div>
